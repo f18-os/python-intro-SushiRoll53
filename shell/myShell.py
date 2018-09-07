@@ -1,17 +1,15 @@
-import os, sys, time, re, stat
+import os, sys, time, re
 
 def getFiles(command,args):
 	pattern = re.compile(r'[A-Za-z]+\.[A-Za-z]+')
 	matches = pattern.finditer(command)
 	for match in matches:
-		print(match[0])
 		args.append(match[0])
 
 def getAction(command,args):
 	pattern = re.compile(r'[^A-Za-z0-9.\s]')
 	matches = pattern.finditer(command)
 	for match in matches:
-		print(match[0])
 		args.append(match[0])
 
 
@@ -22,8 +20,6 @@ while(running):
 
 	getFiles(usr_command,args)
 	getAction(usr_command,args)
-
-	print(args)
 
 	pid = os.getpid()
 
