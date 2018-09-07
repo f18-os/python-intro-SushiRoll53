@@ -25,9 +25,6 @@ while(running):
 
 	print(args)
 
-	st = os.stat(args[0])
-	os.chmod(args[0],st.st_mode | stat.S_IEXEC)
-
 	pid = os.getpid()
 
 	os.write(1, ("About to fork (pid=%d)\n" % pid).encode())
@@ -62,7 +59,3 @@ while(running):
 		os.write(1, ("Parent: My pid=%d.  Child's pid=%d\n" % (pid, rc)).encode())
 		childPidCode = os.wait()
 		os.write(1, ("Parent: Child %d terminated with exit code %d\n" % childPidCode).encode())
-
-
-
-
