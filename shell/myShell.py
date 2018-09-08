@@ -33,6 +33,10 @@ while(running):
 		os.write(1, ("Child: My pid==%d.  Parent's pid=%d\n" % (os.getpid(), pid)).encode())
 
 		if len(args) == 3:
+			if args[2] == '<':
+				temp = args[0]
+				args[0] = args[1]
+				args[1] = temp
 			os.close(1)
 			sys.stdout = open(args[1], "w")
 			fd = sys.stdout.fileno()
