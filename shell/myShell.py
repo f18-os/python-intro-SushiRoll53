@@ -18,8 +18,8 @@ while(running):
 	usr_command = input("Enter command: ")
 	args = []
 
-	getFiles(usr_command,args)
-	getAction(usr_command,args)
+	getFiles(usr_command,args) # gets the names of the files
+	getAction(usr_command,args) # gets what is going to be done
 
 	pid = os.getpid()
 
