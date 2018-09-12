@@ -23,8 +23,19 @@ while(running):
 
 	pid = os.getpid()
 
+	if len(args) == 3:
+		if args[2] == '|':
+			pipefds = os.pipe()
+			os.set_inheritable(pipefds[0], True)
+			os.set_inheritable(pipefds[1], True)
+
+		elif args[2] == '<':
+				temp = args[0]
+				args[0] = args[1]
+				args[1] = temp
+
 	os.write(1, ("About to fork (pid=%d)\n" % pid).encode())
-	rc = os.fork()
+	rc = os.fork() # First child
 
 	if rc < 0:
 		os.write(2, ("fork failed, returning %d\n" % rc).encode())
@@ -32,11 +43,22 @@ while(running):
 	elif rc == 0:
 		os.write(1, ("Child: My pid==%d.  Parent's pid=%d\n" % (os.getpid(), pid)).encode())
 
-		if len(args) == 3:
-			if args[2] == '<':
-				temp = args[0]
-				args[0] = args[1]
-				args[1] = temp
+		if args[2] == '|':
+			rc = os.fork() #Second child
+			print("piping")
+			
+			if rc == 0: # Grandchild
+				os.close(0)
+				os.dup(pipefds[1])
+				os.close(4)
+				os.close(3)
+			else: # Child-Parent
+				os.close(1)
+				os.dup(pipefds[0])
+				os.close(4)
+				os.close(3)
+
+		else:
 			os.close(1)
 			sys.stdout = open(args[1], "w")
 			fd = sys.stdout.fileno()
@@ -44,15 +66,15 @@ while(running):
 			os.write(2, ("Child: opened fd=%d for writing\n" % fd).encode())
 
 
-		for dir in re.split(":", os.environ['PATH']): # try each directory in path
-			program = "%s/%s" % (dir, args[0])
-			try:
-				os.execve(program, args, os.environ) # try to exec program
-			except FileNotFoundError:             # ...expected
-				pass                              # ...fail quietly 
+			for dir in re.split(":", os.environ['PATH']): # try each directory in path
+				program = "%s/%s" % (dir, args[0])
+				try:
+					os.execve(program, args, os.environ) # try to exec program
+				except FileNotFoundError:             # ...expected
+					pass                              # ...fail quietly 
 
-		os.write(2, ("Child:    Error: Could not exec %s\n" % args[0]).encode())
-		sys.exit(1)
+			os.write(2, ("Child:    Error: Could not exec %s\n" % args[0]).encode())
+			sys.exit(1)
  
 
 	else:
