@@ -1,7 +1,7 @@
 import os, sys, time, re
 
 def getFiles(command,args):
-	pattern = re.compile(r'[A-Za-z]+\.[A-Za-z]+')
+	pattern = re.compile(r'[A-Za-z0-9]+\.[A-Za-z]+')
 	matches = pattern.finditer(command)
 	for match in matches:
 		args.append(match[0])
@@ -28,6 +28,8 @@ while(running):
 			pipefds = os.pipe()
 			os.set_inheritable(pipefds[0], True)
 			os.set_inheritable(pipefds[1], True)
+			for i in pipefds:
+				print(i)
 
 		elif args[2] == '<':
 				temp = args[0]
@@ -45,18 +47,39 @@ while(running):
 
 		if args[2] == '|':
 			rc = os.fork() #Second child
-			print("piping")
 			
-			if rc == 0: # Grandchild
+			if rc != 0: # Grandchild
+				os.wait()
 				os.close(0)
-				os.dup(pipefds[1])
-				os.close(4)
-				os.close(3)
+				pipefds[0] = open(0,"r")
+				#os.close(pipefds[0])
+				
+				for dir in re.split(":", os.environ['PATH']): # try each directory in path
+					program = "%s/%s" % (dir, args[1])
+					try:
+						os.execve(program, args, os.environ) # try to exec program
+					except FileNotFoundError:             # ...expected
+						pass                              # ...fail quietly 
+
+				os.write(2, ("Child:    Error: Could not exec %s\n" % args[0]).encode())
+				#sys.exit(1)
+
+
 			else: # Child-Parent
+				
 				os.close(1)
-				os.dup(pipefds[0])
-				os.close(4)
-				os.close(3)
+				pipefds[1] = open(1,"w")
+				#os.close(pipefds[1])
+
+				for dir in re.split(":", os.environ['PATH']): # try each directory in path
+					program = "%s/%s" % (dir, args[0])
+					try:
+						os.execve(program, args, os.environ) # try to exec program
+					except FileNotFoundError:             # ...expected
+						pass                              # ...fail quietly 
+
+				os.write(2, ("Child:    Error: Could not exec %s\n" % args[0]).encode())
+				#sys.exit(1)
 
 		else:
 			os.close(1)
