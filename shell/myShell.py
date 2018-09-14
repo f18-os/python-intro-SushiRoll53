@@ -1,13 +1,13 @@
 import os, sys, time, re
-
-running = True
-while(running):
-	usr_command = input("Enter command: ")
+while(True):
+	usr_command = input("$ ")
+	if usr_command.lower() == "exit":
+		break
 	args = usr_command.split(" ")
 
 	if len(args) >= 3:
 		if args[1] == '|':
-			r, w = os.pipe()
+			r, w = os.pipe() # Start the pipe
 			os.set_inheritable(r, True) # To Read
 			os.set_inheritable(w, True) # To Write
 
@@ -59,6 +59,7 @@ while(running):
 
 		else:
 			args.pop(1)
+			os.write(1, ("About to fork (pid=%d)\n" % os.getpid()).encode())
 			rc1 = os.fork() # Creates a Grandchild
 			if rc1 < 0:
 				os.write(2, ("fork failed, returning %d\n" % rc1).encode())
