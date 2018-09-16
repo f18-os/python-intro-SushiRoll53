@@ -1,6 +1,6 @@
 ## myShell.py
 
-This shell accepts the folling commands:
+This shell accepts the following commands:
 
 - <file/command>
 - <file/command> > <outputFile>
