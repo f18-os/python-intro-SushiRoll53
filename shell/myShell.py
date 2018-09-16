@@ -9,12 +9,13 @@ while(True):
 	if usr_command.lower() == "exit":
 		break
 	args = usr_command.split(" ")
-
+	piping = False
 	if len(args) >= 3:
 		if args[1] == '|':
 			r, w = os.pipe() # Start the pipe
 			os.set_inheritable(r, True) # To Read
 			os.set_inheritable(w, True) # To Write
+			piping = True
 
 	pid = os.getpid() #Parent's ID
 
@@ -25,8 +26,8 @@ while(True):
 		os.write(1, ("##CHILD ID=%d.  Parent's pid=%d\n" % (os.getpid(), pid)).encode())
 
 		if len(args) < 3:
-			for dir in re.split(":", os.environ['PATH']): # try each directory in path
-				program = "%s/%s" % (".", args[0])
+			for dir in re.split(":", os.environ['PATH']+":."): # try each directory in path
+				program = "%s/%s" % (dir, args[0])
 				try:
 					os.execve(program, args, os.environ) # try to exec program
 				except FileNotFoundError:             # ...expected
@@ -48,8 +49,8 @@ while(True):
 			os.write(2, ("##Child: opened fd=%d for writing\n" % fd).encode())
 
 			argsC = [args[0],args[1]]
-			for dir in re.split(":", os.environ['PATH']): # try each directory in path
-				program = "%s/%s" % (".", args[0])
+			for dir in re.split(":", os.environ['PATH']+":."): # try each directory in path
+				program = "%s/%s" % (dir, args[0])
 				try:
 					os.execve(program, argsC, os.environ) # try to exec program
 				except FileNotFoundError:             # ...expected
@@ -70,8 +71,8 @@ while(True):
 					os.close(i)
 				sys.stdout = os.fdopen(1,'w') 
 
-				for dir in re.split(":", os.environ['PATH']): # try each directory in path
-					program = "%s/%s" % (".", args[0])
+				for dir in re.split(":", os.environ['PATH']+":."): # try each directory in path
+					program = "%s/%s" % (dir, args[0])
 					try:
 						os.execve(program, args, os.environ) # try to exec program
 					except FileNotFoundError:             # ...expected
@@ -90,8 +91,8 @@ while(True):
 				os.close(r)
 				sys.stdin = os.fdopen(0,'r')
 
-				for dir in re.split(":", os.environ['PATH']): # try each directory in path
-					program = "%s/%s" % (".", args[1])
+				for dir in re.split(":", os.environ['PATH']+":."): # try each directory in path
+					program = "%s/%s" % (dir, args[1])
 					try:
 						os.execve(program, args, os.environ) # try to exec program
 					except FileNotFoundError:             # ...expected
@@ -99,7 +100,8 @@ while(True):
 
 				os.write(2, ("##Child:    Error: Could not exec %s\n" % args[1]).encode())
 	else:
-		os.close(w)
+		if piping:
+			os.close(w)
 		os.write(1, ("Parent: My pid=%d.  Child's pid=%d\n" % (pid, rc)).encode())
 		childPidCode = os.wait()
 		os.write(1, ("Parent: Child %d terminated with exit code %d\n" % childPidCode).encode())
