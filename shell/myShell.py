@@ -1,10 +1,11 @@
+#! /usr/bin/env python3
 import os, sys, time, re
-promp = "$ "
+os.environ["PS1"] = "$ "
 while(True):
-	usr_command = input(promp)
+	usr_command = input(os.environ["PS1"])
 	check = usr_command.split("=")
 	if check[0] == "export PS1 " or check[0] == "export PS1":
-		promp = check[1].replace("\"","").replace(" ","")
+		os.environ["PS1"] = check[1].replace("\"","").replace(" ","")
 		continue
 	if usr_command.lower() == "exit":
 		break
