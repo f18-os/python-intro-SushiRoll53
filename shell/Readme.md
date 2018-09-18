@@ -3,8 +3,8 @@
 This shell accepts the following commands:
 
 - <file/command>
-- <file/command> &gt <txt>
-- <txt> &lt <file/command>
+- <file/command> > <file>
+- <file> < <file/command>
 - <file/command> | <file/command>
 - export PS1 = "<newPromp>"
 - exit (To close myShell.py)
