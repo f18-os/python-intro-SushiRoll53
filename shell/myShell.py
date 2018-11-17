@@ -1,7 +1,9 @@
 #! /usr/bin/env python3
 import os, sys, time, re
 os.environ["PS1"] = "$ "
+# The prompt will only close if the user types exit
 while(True):
+	# Checks what the user type, and gives priority to PS1 and Exit
 	usr_command = input(os.environ["PS1"])
 	check = usr_command.split("=")
 	if check[0] == "export PS1 " or check[0] == "export PS1":
@@ -11,7 +13,9 @@ while(True):
 		break
 	args = usr_command.split(" ")
 	piping = False
+	# Checks if the user entered 3 or more arguments
 	if len(args) >= 3:
+		# If it has a pipe, we connect the pipe
 		if args[1] == '|':
 			r, w = os.pipe() # Start the pipe
 			os.set_inheritable(r, True) # To Read
@@ -22,7 +26,7 @@ while(True):
 
 	os.write(1, ("About to fork (pid=%d)\n" % pid).encode())
 	rc = os.fork()
-
+	# First child
 	if rc == 0:
 		os.write(1, ("##CHILD ID=%d.  Parent's pid=%d\n" % (os.getpid(), pid)).encode())
 
@@ -101,6 +105,7 @@ while(True):
 
 				os.write(2, ("##Child:    Error: Could not exec %s\n" % args[1]).encode())
 	else:
+		# If a pipe was entered by the user, we close the aditional output (w)
 		if piping:
 			os.close(w)
 		os.write(1, ("Parent: My pid=%d.  Child's pid=%d\n" % (pid, rc)).encode())
